@@ -89,4 +89,65 @@ studying of docker, containerd, kubernetes, k3s, ELK stack etc
       In the other hand `docker run -p <hostPort>:<containerPort>/tcp` opens and maps the port to be accessed by the host.   
       Therefor the `docker ps` shows `0.0.0.0:8888 (the hosts port)->8080/tcp (mapped to the containers port)`.      
       <br/>
-      It would be best if we use this accordingly to our applications use case.   
+      It would be best if we use this accordingly to our applications use case.
+* ### docker-compose
+  * ### What is docker-compose
+    * ![img4.png](images%2Fimg4.png)   
+      Lets say that you want to create a service.   
+      You would want to create a database, a backend server, and a frontend server.   
+      Well, docker compose got you covered, you can deploy all of these servers with a single command, `docker compose up`.   
+      <br>
+      It is just like a composer in a orchestra, handling multiple pods just in one go.
+  * ### `docker-compose.yaml`
+    * ### Basics
+      ```yaml
+      version: "3"
+      services:
+        frontend:
+          build: frontend_file/.
+          ports:
+          - "8081:8080"
+        backend:
+          build: backend_file/.
+          ports:
+          - "8082:3000"
+        database:
+          image: "mysql:8.2.0"
+      ```
+      This `docker-compose.yaml` means,   
+      1. Create 3 services named `frontend`, `backend`, `database`.   
+      2. The `Dockerfile` located for each service is in `frontend_file/.`, `backend_file/.`.   
+      3. For the database, use the image `mysql:8.2.0` from docker hub.   
+      4. Connect the `frontend` pods port 8080 to 8081 of the host.
+      5. Connect the `backend` pods port 3000 to 8082 of the host.
+    * ### Volumes
+      In docker, you can run `docker run -v <host-path>:<container-path> <image-name>` command in order use a path of the host as volumes to mount on your image.   
+      <br>
+      This is handy when you need to create multiple pods and shared volumes between services.
+      ```yaml
+      version: "3"
+      services:
+        database:
+        image: mysql:8.2.0
+        volumes:
+         - ./host-file-path:/var/lib/mysql
+      ```
+      The volumes is an array of `<host_path>:<container_path>` that you want to mount.   
+      After you mount a volume, changes either in the host or the container will affect each other as it is a "mounted" volume.   
+      <br>
+      try the `docker exec -it <mycontainer> bash` command, to double check.   
+      Some IDEs like jetbrains allow you to connect by UI.    
+      ![img5.png](images%2Fimg5.png)
+    * ### Environment variables
+      ```yaml
+      version: "3"
+      services:
+        my-service-name:
+          image: my-image-name
+        environment:
+          - KEY1=value1
+          - KEY2=value2
+      ```
+      You can also set environment variables in docker-compose.   
+      We did learn that `ENV` in Dockerfile also changes the environment variable.   
+      It would be a matter of taste where to put it, so just pick one, and do not cross use it.   
