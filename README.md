@@ -139,15 +139,56 @@ studying of docker, containerd, kubernetes, k3s, ELK stack etc
       Some IDEs like jetbrains allow you to connect by UI.    
       ![img5.png](images%2Fimg5.png)
     * ### Environment variables
+      ![img6.png](images%2Fimg6.png)   
+      if you have ran the `image: mysql:8.2.0` image above, you will see this error.
+      This is because the environment variable for the mysql connection is not set.   
       ```yaml
       version: "3"
       services:
         my-service-name:
           image: my-image-name
         environment:
-          - KEY1=value1
-          - KEY2=value2
+          - MYSQL_ROOT_PASSWORD=value1
+          - MYSQL_ALLOW_EMPTY_PASSWORD=value2
+          - MYSQL_RANDOM_ROOT_PASSWORD=value3
       ```
       You can also set environment variables in docker-compose.   
       We did learn that `ENV` in Dockerfile also changes the environment variable.   
-      It would be a matter of taste where to put it, so just pick one, and do not cross use it.   
+      It would be a matter of taste where to put it, so just pick one, and do not cross use it.
+    * ### depends_on
+      This keyword is for a service to start only after the service that it depends on.   
+      The frontend should never start before the backend.
+      ```yaml
+      version: '3'
+
+      services:
+        backend:
+          image: backend-image-location
+
+        frontend:
+          image: frontend-image-location
+          depends_on:
+          - backend
+      ```
+    * ### Replicas
+      Just note that this feature exists, but do not use this unless you are using docker swarm.
+      Most companies do not use swarm over k8s.
+      ```yaml
+      version: "3"
+        services:
+          database:
+            image: "mysql:8.2.0"
+            ports:
+            - "8080:3000"
+            deploy:
+              replicas: 3
+      ```
+      Also, you cannot bind 3 replicas ports with localhost port of 8080.   
+      So you should create 3 services separately or remove the host port.   
+      <br>
+      If you are thinking of creating a load balancer within `docker-compose` and redistribute traffic, I strongly advise you to just use
+      kubernetes service and deployments.   
+      <br>
+      It is possible with nginx, but not recommended. kubernetes should handle replicas and traffic, not docker.   
+
+## Kubernetes
