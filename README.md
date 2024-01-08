@@ -1,5 +1,5 @@
 # ArchitectureGuide
-studying of docker, containerd, kubernetes, k3s, ELK stack etc
+studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
 
 
 ## Docker
@@ -192,3 +192,73 @@ studying of docker, containerd, kubernetes, k3s, ELK stack etc
       It is possible with nginx, but not recommended. kubernetes should handle replicas and traffic, not docker.   
 
 ## Kubernetes
+* ### Why do we need microservices? [Mastering chaos - Netflix](https://www.youtube.com/watch?v=CZ3wIuvmHeM&t=1218s)   
+  ![img7.png](images%2Fimg7.png)
+  From the year 2000, Netflix had a monolith architecture that scales horizontally.   
+  They used two databases "STORE" and "BILLING" which had no replicas whatsoever.   
+  As time goes on, their main server has become this massive chunk of code which was over their heads, dies constantly, takes all day to boot and debug.
+  * #### Massive chunk of code
+  * #### Massive dependencies
+  * #### Massive cost on boot and debugging
+  * #### High usage of threads and processes
+  * #### New features can kill the whole service
+  * #### A bad query can kill the whole service
+  * #### Massive cost updating databases and columns
+  ![img8.png](images%2Fimg8.png)
+  That is where the microservice architecture comes in.   
+  This architecture is where a service is divided into multiple parts.   
+  <br>
+  Netflix
+  * user-api
+  * product-api
+  * platform-api
+  * Persistence (Databases)
+  * ...
+      
+  <br>
+
+  This did solve the main problems of a monolith architecture, but it has its downfalls.   
+  * #### Cascading failures
+    When a feature accesses multiple api, a single point that fails will result in another point to fail and continues until it kills the whole system.   
+    ![img9.gif](images%2Fimg9.gif)   
+    In Netflix, they have solved it by a static response to be returned in case of a failure.    
+    This blocks and isolates the failed endpoint. and continues the service with failure in mind.
+  * #### Database Persistence
+    If a service wants to change data to 3 different regions of databases, but cannot access to some of them, should the process fail?
+    Should the process write to one, and apply the changes later?   
+    <br>
+    Now netflix used a nosql database called "Cassandra" which manages multiple database nodes and keeps persistence with each other nodes.   
+    <br>
+    This might be a overkill for most companies, but it's good to know a service that handles databases the "microservice" way.
+    ![img10.jpeg](images%2Fimg10.jpeg)
+  * #### Stateful Service
+    If a node keeps a "state", it means that it stores data within that node that is relevant to the service.
+    The "user" must keep contacting this "service node" because it keeps it's "state" within.   
+    If a service is "stateful" the loss is a "cost" that results in a failure of a service.   
+    If a service is "stateless" the loss of a node has no impact on the service as the user can contact another node.
+* ## Kubernetes components
+  Kubernetes is a microservice management tool constructed with multiple components.   
+  <br>
+  * Master nodes
+    * API Server
+      * Kubernetes dashboard
+      * API
+      * Kubectl
+    * Control Manager
+    * Scheduler
+    * etcd
+    * Deployment
+      * Service
+  * Worker nodes
+    * Pods
+      * Containers
+
+  I will be giving examples on how to set up a kubernetes server without a cloud provider or external tools.   
+  You can configure kubernetes just by configuring UI managed by AWS
+  [EKS](https://aws.amazon.com/eks/?nc1=h_ls) or [EKSCTL](https://github.com/eksctl-io/eksctl).   
+  Studied from the [official documentation](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/tools/).
+  * ### Master node (Control plane)
+    * The master node is where all worker nodes are managed.   
+      It is a control plane that communicates via the API server in order to control the cluster.   
+
+    * ### API Server
