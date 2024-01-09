@@ -253,12 +253,46 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
     * Pods
       * Containers
 
-  I will be giving examples on how to set up a kubernetes server without a cloud provider or external tools.   
-  You can configure kubernetes just by configuring UI managed by AWS
-  [EKS](https://aws.amazon.com/eks/?nc1=h_ls) or [EKSCTL](https://github.com/eksctl-io/eksctl).   
-  Studied from the [official documentation](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/tools/).
-  * ### Master node (Control plane)
-    * The master node is where all worker nodes are managed.   
-      It is a control plane that communicates via the API server in order to control the cluster.   
-
-    * ### API Server
+  I will be giving examples on how to set up a kubernetes server without a cloud provider or tools.   
+  If you want to manually configure kubernetes manually, you can use [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/),
+  [kpops](https://kops.sigs.k8s.io/) or [kubespray](https://kubespray.io/#/).   
+  If you want to configure kubernetes in AWS, you can use [EKS](https://aws.amazon.com/eks/?nc1=h_ls) or [EKSCTL](https://github.com/eksctl-io/eksctl).   
+  In this guide, I will use kubeadm studied from the [official documentation](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/tools/).
+  * ### Installation
+    * ### Open ports
+      In order for the Master node and worker nodes to function, you need these [specific network rules](https://v1-28.docs.kubernetes.io/docs/reference/networking/ports-and-protocols/).
+      ![img12.png](images%2Fimg12.png)   
+      <br>
+      Now if you are using AWS, you can configure security groups for inbound and outbound rules.
+      ![img13.png](images%2Fimg13.png)   
+      <br>
+      You can use netcat (nc) in order to check if the ports are open and connectable between nodes.   
+      For example, if you want to check if the port `10250` is open in your worker node,   
+      run `nc -l 10250` in your worker,   
+      run `nc -zv <worker-node-ec2-ip> 10250` in your master.  
+      <br>
+      your master netcat should return something like this.   
+      ![img14.png](images%2Fimg14.png)   
+      
+    * ### Container runtime
+      Now the kubernetes [documents](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/)
+      notes that you can run with a multiple of options like containerd, docker engine, CRI-O. I will just install docker with the simple `sudo apt install` command.   
+      Kubernetes did drop docker support for dockershim from its project and uses containerd, but docker uses containerd under the hood, so we shouldn't be worried about it.   
+      [Install docker on ubuntu](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+    * ### Installing kubeadm, kubelet and kubectl
+      This installation is using the `apt` package install method, so if you are using redhat, or any other distributions, check [instructions](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl).
+      ```shell
+      sudo apt-get update
+      # apt-transport-https may be a dummy package; if so, you can skip that package
+      sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      # This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
+      echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo apt-get update
+      sudo apt-get install -y kubelet kubeadm kubectl
+      sudo apt-mark hold kubelet kubeadm kubectl
+      ```
+    * ### Installing master node
+      `kubeadm init`
+    * `--control-plane-endpoint` specifies the endpoint (load balancer or IP) for the control plane. This is used in HA setups where the control plane is distributed across multiple nodes.
+    * `--upload-certs` is used to upload certificates to the Kubernetes configuration directory. This is essential for joining additional control plane nodes to the cluster.
