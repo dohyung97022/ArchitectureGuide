@@ -279,6 +279,22 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       notes that you can run with a multiple of options like containerd, docker engine, CRI-O. I will just install docker with the simple `sudo apt install` command.   
       Kubernetes did drop docker support for dockershim from its project and uses containerd, but docker uses containerd under the hood, so we shouldn't be worried about it.   
       [Install docker on ubuntu](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+      ```shell
+      # Add Docker's official GPG key:
+      sudo apt-get update
+      sudo apt-get install ca-certificates curl gnupg
+      sudo install -m 0755 -d /etc/apt/keyrings
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      sudo chmod a+r /etc/apt/keyrings/docker.gpg
+      
+      # Add the repository to Apt sources:
+      echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      sudo apt-get update
+      sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      ```
     * ### Installing kubeadm, kubelet and kubectl
       This installation is using the `apt` package install method, so if you are using redhat, or any other distributions, check [instructions](https://v1-28.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl).
       ```shell
@@ -293,6 +309,67 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       sudo apt-mark hold kubelet kubeadm kubectl
       ```
     * ### Installing master node
-      `kubeadm init`
-    * `--control-plane-endpoint` specifies the endpoint (load balancer or IP) for the control plane. This is used in HA setups where the control plane is distributed across multiple nodes.
-    * `--upload-certs` is used to upload certificates to the Kubernetes configuration directory. This is essential for joining additional control plane nodes to the cluster.
+      `sudo kubeadm init`   
+      <br>
+      `--control-plane-endpoint` specifies the endpoint (load balancer or IP) for the control plane. This is used in HA setups where the control plane is distributed across multiple nodes.   
+      `--upload-certs` is used to upload certificates to the Kubernetes configuration directory. This is essential for joining additional control plane nodes to the cluster.   
+      <br>
+      If have successfully installed the master node, this should pop up.   
+      <br>
+      ![img15.png](images%2Fimg15.png)
+      You must configure the `./kube/config` file afterwards.
+      ```shell
+      mkdir -p $HOME/.kube
+      sudo cp -i /etc/kubernetes/kubelet.conf $HOME/.kube/config
+      sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      # restart kubelet in order to let the configuration apply
+      sudo systemctl restart kubelet.service
+      ```
+    * ### Installing worker node
+      If you have successfully installed the master node, you will get a response like this.   
+      `kubeadm join 172.31.14.79:6443 --token 8xwmlv.gs5787m8y16ty0zx \
+      --discovery-token-ca-cert-hash sha256:0ddf616b72ad2065e6312b17f03c0a77e090547a5e8190296141a5833a5d6a6c`   
+      <br>
+      Run the command on the worker node. and you should get a response like this.   
+      <br>
+      ![img16.png](images%2Fimg16.png)   
+      <br>
+      If you return to your master node, and check `kubectl get nodes`,
+      ![img17.png](images%2Fimg17.png)   
+      Congrats!
+    * ### errors
+    * #### unknown service runtime.v1.RuntimeService
+      If you have any errors, run the `kubeadm reset` to reset changes made by kubeadm.   
+      Errors I have encountered   
+      https://github.com/kubernetes-sigs/cri-tools/issues/1089
+      ```
+      validate service connection: validate CRI v1 runtime API for endpoint "unix:///run/containerd/containerd.sock": rpc error: code = Unimplemented desc = unknown service runtime.v1.RuntimeService
+      ```
+      This error happens because kubeadm cannot communicate with containerd via a sock communication tool `crictl`.
+      ```
+      sudo crictl -r unix:///run/containerd/containerd.sock ps
+      # expected result
+      CONTAINER           IMAGE               CREATED             STATE               NAME                ATTEMPT             POD ID              POD
+      ```
+      This command will change the `/etc/containerd/config.toml` so that it uses the default configuration.
+      ```
+      sudo su
+      containerd config default | tee /etc/containerd/config.toml
+      systemctl restart containerd
+      ```
+      
+    * #### Get "https://{server_ip_address}:6443/api?timeout=32s": dial tcp {server_ip_address}:6443: connect: connection refused
+      If the {server_ip_address} is localhost, check the command `kubectl config view` command.   
+      This command would show that `~/.kube/config` is not set.   
+      https://stackoverflow.com/questions/76841889/kubectl-error-memcache-go265-couldn-t-get-current-server-api-group-list-get
+      ```shell
+      mkdir -p $HOME/.kube
+      sudo cp -i /etc/kubernetes/kubelet.conf $HOME/.kube/config
+      sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      ```
+      
+      If your configurations are set, it means that you did not reboot kubernetes to set changed configurations.
+      ```shell
+      # restart kubelet in order to let the configuration apply
+      sudo systemctl restart kubelet.service
+      ```
