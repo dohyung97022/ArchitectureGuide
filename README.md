@@ -373,3 +373,75 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       # restart kubelet in order to let the configuration apply
       sudo systemctl restart kubelet.service
       ```
+  * ### Service
+    A service is network control configurations for pods.   
+    There are a various types you can assign as your service.
+    * ClusterIp 
+    * NodePort
+    * LoadBalancer
+    * ExternalName
+    <br>   
+    <br>
+
+    This is a basic configuration of a `service.yaml`   
+    Lets go through the basics and see what each component do.
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: my-service
+    spec:
+      type: NodePort
+      selector:
+        app: my-app
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 8080
+    ```
+    ### `spec.type`
+    * Note that the `kind` must be as `Service` and you can specify which service it is by `spec.type`.   
+      If you do not specify, it will be of type `ClusterIp` as default.   
+  
+    ### `spec.selector`
+    * The `spec.selector` you see above is `app:my-app`.   
+      This is how services know which pod is assigned to this service.   
+      You can assign `selectors` to a specific pod by `deployment.yaml`.
+    * ```yaml
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: my-deployment
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: my-app
+        template:
+          metadata:
+            labels:
+              app: my-app
+          spec:
+            containers:
+              - name: my-container
+                image: my-image
+      ```
+      This is the deployments example.   
+      You can see two instances of `app:my-app`.   
+      <br>
+      `spec.selector.matchLables` = `app:my-app`   
+      This means that the Deployment will identify the pod by `app:my-app` label.   
+      <br>
+      `spec.template.metadata.labels` = `app:my-app`   
+      This menas that the template for each pods will have the label `app:my-app` when created.   
+      <br>
+      So you would need 3 instances of `app:my-app` needed.   
+      Two in deployment.yaml and one in service.yaml.   
+      Note that all labels need to match if multiple is given.   
+    ### `ports.port` && `ports.targetPort`
+    * `ports.port` is the port that the service opens to be accessed.
+    * `ports.targetPort` is the port that the service will access to the pods.
+    * ![img18.png](images%2Fimg18.png)
+    * You can get the internal(cluster-ip) and external-ip of the service and its open ports by the command   
+      `kubectl get service <my-service-name>`   
+      ![img19.png](images%2Fimg19.png)
