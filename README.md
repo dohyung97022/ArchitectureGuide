@@ -373,6 +373,17 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       # restart kubelet in order to let the configuration apply
       sudo systemctl restart kubelet.service
       ```
+    * #### Unable to connect to the server: tls: failed to verify certificate: x509: certificate signed by unknown authority (possibly because of "crypto/rsa: verification error" while trying to verify candidate authority certificate "kubernetes")
+      This error happens because the configurations that is set on `$HOME/.kube/config` is having problems with certification.   
+      ```yaml
+      user:
+         client-certificate: /var/lib/kubelet/pki/kubelet-client-current.pem
+         client-key: /var/lib/kubelet/pki/kubelet-client-current.pem
+      ```
+      The .pem files might not exist, if this happens on the control plane you can copy the admin.conf as the configurations.   
+      ```shell
+      sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+      ```
   * ### Service
     A service is network control configurations for pods.   
     There are a various types you can assign as your service.
