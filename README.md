@@ -480,8 +480,8 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
   ![img21.png](images%2Fimg21.png)   
   The monthly cost ramps up to 170$ per month if you consider all the additional cost for networking and rdb.   
   Which in fact, can be installed in a computer that you own in your house.   
- <br>
-  This is my bills by the way. XD 
+  <br>
+  This is my bills by the way. XD   
   ![img22.png](images%2Fimg22.png)   
 * ### The cost return factor with custom bought computers.   
   Now, if you do plan to go local, you should be quite careful to chose the right hardware.   
