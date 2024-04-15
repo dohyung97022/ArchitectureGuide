@@ -309,15 +309,16 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       sudo apt-mark hold kubelet kubeadm kubectl
       ```
     * ### Installing master node
-      `sudo kubeadm init`   
+      `sudo kubeadm init --pod-network-cidr={your cidr ip}/{your cidr mask}`    
       <br>
+      `--pod-network-cidr=172.31.0.0/16` this command is for configuring the cidr block for pods.   
       `--control-plane-endpoint` specifies the endpoint (load balancer or IP) for the control plane. This is used in HA setups where the control plane is distributed across multiple nodes.   
       `--upload-certs` is used to upload certificates to the Kubernetes configuration directory. This is essential for joining additional control plane nodes to the cluster.   
       <br>
       If have successfully installed the master node, this should pop up.   
       <br>
       ![img15.png](images%2Fimg15.png)
-      You must configure the `./kube/config` file afterwards.
+      You must configure the `./kube/config` file afterward.
       ```shell
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/kubelet.conf $HOME/.kube/config
@@ -351,10 +352,12 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
       # expected result
       CONTAINER           IMAGE               CREATED             STATE               NAME                ATTEMPT             POD ID              POD
       ```
-      This command will change the `/etc/containerd/config.toml` so that it uses the default configuration.
+      This command will change the `/etc/containerd/config.toml` so that it uses the default configuration.   
+      Change the `disabled_plugins = ["ctl"]` into `disabled_plugins = []`
       ```
       sudo su
       containerd config default | tee /etc/containerd/config.toml
+      sudo vim /etc/containerd/config.toml
       systemctl restart containerd
       ```
       
@@ -456,3 +459,50 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
     * You can get the internal(cluster-ip) and external-ip of the service and its open ports by the command   
       `kubectl get service <my-service-name>`   
       ![img19.png](images%2Fimg19.png)
+
+
+## Local Servers
+* ### Why would you want to escape AWS?
+  The tech industry is currently so tangles with cloud providers.   
+  In a way that we cannot think or come up with a idea that does not use or rely on such services.    
+  But in some cases, it is better to go locally and manage your own servers in order to cut cost.
+  [$400,000,000 Saved - NO MORE AWS](https://www.youtube.com/watch?v=XAbX62m4fhI&t=1173s)   
+  I am not in the position to say such claims, but I do understand such points taken and give some cases.   
+  * #### Using extreme computing hardware. (ex: AI).
+  * #### If your service relies on computing power itself as a source of income.
+  * #### If you are a student or a hobbyist sick of paying per month to AWS. (Me)
+* ### Why did I chose to migrate some of my projects out of AWS?
+  I have created a k8s cluster on aws trying to learn and deploy a microservice on my own.
+  ![img20.png](images%2Fimg20.png)   
+  But currently, the k8s requires a 2GB and a 2vCPU machine.   
+  And k8s requires you to have 1 control plane, and 1 worker in order to get the full ordeal.   
+  This would require me to get at least 2x t2.medium.
+  ![img21.png](images%2Fimg21.png)   
+  The monthly cost ramps up to 170$ per month if you consider all the additional cost for networking and rdb.   
+  Which in fact, can be installed in a computer that you own in your house.   
+ <br>
+  This is my bills by the way. XD 
+  ![img22.png](images%2Fimg22.png)   
+* ### The cost return factor with custom bought computers.   
+  Now, if you do plan to go local, you should be quite careful to chose the right hardware.   
+  It is up to you because there are so many vendors, and so many choices to be made in such occasions.   
+  <br>
+  But to be simple, I will compare the t2.medium with raspberry pi 5.   
+  <br>
+  A [t2.medium](https://stackoverflow.com/questions/57652339/what-is-vcpu-in-aws) has a max of 3.3 Ghz and 4GB of memory.   
+  A [raspbarry pi 5](https://www.amazon.com/Raspberry-4GB-Board-Heatsinks-4pcs/dp/B0CQ2WGZFG/ref=sr_1_3?crid=QKWTOVV89UF8&dib=eyJ2IjoiMSJ9.saE66Pe4RTBORKkp4RmGt3EVnb6tNZPsQeVds8HlABfxfd0Dnu-eNWay9ndfmcUoUJHAk_tAJ5g7JJ98nq9-E2mQwFWj8Lu0f3nkH1UWLgNsseL2i17Kz-c4a2rFDxUgNizoES7ePqjgLxMsQaz4iEOSP8UENMlt7-43k5CSfMBkalrgthzee8S_1nlaee0wzZ67FDpwpCQsDahg_91TQUxnCeeIVwO-8HRWucf1-74.czBrQXCn5eBHQtwvP3bHzZWJnwBod-23e1faxiUTfc8&dib_tag=se&keywords=raspberry+pi+5+4gb&qid=1713170981&sprefix=raspberry+pi+5+4g%2Caps%2C246&sr=8-3) has 2.4 Ghz on default and 4GB of memory.   
+  <br>
+  (at the time of this writing)   
+  A t2.medium would cost you 42.5$ per month.   
+  A raspberry pi would cost you 73$ for purchase.   
+  <br>
+  If you run your local server for more than 2 months, you can get your ROI for the initial cost.   
+  The same can be said for GPU intensive servers, NAS servers.   
+  It rounds up to **2 months ~ 1 year** to get back your initial investment in most cases.   
+* ### It is not all roses and flowers.
+  The sole reason that AWS has become dominate in the first place, is because it was such a hassle in order to manage a local server.   
+  The ISP that you have may not be sufficient to handle such traffic as in AWS.   
+  If you have such servers managed by you or your company, it can also be a huge risk for downtime.   
+  Like the example of the [kakao datacenter on fire](https://www.youtube.com/watch?v=0RmDw3t4JPM).   
+  Business critical information such as money transfer can be lost in such occasions.   
+  You should think local servers as a **choice that can be made, not as a belief.**
