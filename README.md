@@ -467,7 +467,7 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
   In a way that we cannot think or come up with a idea that does not use or rely on such services.    
   But in some cases, it is better to go locally and manage your own servers in order to cut cost.
   [$400,000,000 Saved - NO MORE AWS](https://www.youtube.com/watch?v=XAbX62m4fhI&t=1173s)   
-  I am not in the position to say such claims, but I do understand such points taken and give some cases.   
+  I am not in the position or experience to say such claims, but I do understand such points taken and give some cases.   
   * #### Using extreme computing hardware. (ex: AI).
   * #### If your service relies on computing power itself as a source of income.
   * #### If you are a student or a hobbyist sick of paying per month to AWS. (Me)
@@ -499,10 +499,12 @@ studying of docker, containerd, kubernetes, k3s, k8s, ELK stack etc
   If you run your local server for more than 2 months, you can get your ROI for the initial cost.   
   The same can be said for GPU intensive servers, NAS servers.   
   It rounds up to **2 months ~ 1 year** to get back your initial investment in most cases.   
-* ### It is not all roses and flowers.
+* ### It is not all roses and flowers
   The sole reason that AWS has become dominate in the first place, is because it was such a hassle in order to manage a local server.   
   The ISP that you have may not be sufficient to handle such traffic as in AWS.   
   If you have such servers managed by you or your company, it can also be a huge risk for downtime.   
   Like the example of the [kakao datacenter on fire](https://www.youtube.com/watch?v=0RmDw3t4JPM).   
   Business critical information such as money transfer can be lost in such occasions.   
   You should think local servers as a **choice that can be made, not as a belief.**
+* ### Installing k8s in local servers
+  
